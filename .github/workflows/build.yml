@@ -26,6 +26,21 @@ jobs:
       - name: Build mod
         run: gradle clean build --no-daemon --stacktrace
 
+      - name: Diagnose Java compilation
+        shell: bash
+        run: |
+          echo "=== Java source files ==="
+          find src/main/java -type f -name '*.java' -print
+
+          echo "=== Compiled class files ==="
+          find build/classes -type f -name '*.class' -print 2>/dev/null || true
+
+          echo "=== JAR files ==="
+          find build/libs -maxdepth 1 -type f -name '*.jar' -exec ls -lh {} \;
+
+          echo "=== Compile Java explicitly ==="
+          gradle compileJava --no-daemon --info
+
       - name: Verify JAR
         shell: bash
         run: |
