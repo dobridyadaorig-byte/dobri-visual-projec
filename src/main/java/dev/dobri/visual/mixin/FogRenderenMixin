@@ -1,0 +1,33 @@
+package dev.dobri.visual.mixin;
+
+import dev.dobri.visual.Modules;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.fog.FogRenderer;
+import net.minecraft.client.world.ClientWorld;
+import org.joml.Vector4f;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+/** Custom Fog: подмешиваем свой цвет к цвету тумана. */
+@Mixin(FogRenderer.class)
+public class FogRendererMixin {
+    @Inject(method = "getFogColor", at = @At("RETURN"), cancellable = true, require = 0)
+    private void dobri$fog(Camera camera, float tickProgress, ClientWorld world, int viewDistance,
+                           float skyDarkness, CallbackInfoReturnable<Vector4f> cir) {
+        if (!Modules.FOG.enabled) return;
+        Vector4f orig = cir.getReturnValue();
+        if (orig == null) return;
+        int rgb = Modules.color(Modules.FOG_COLOR.index);
+        float k = Modules.FOG_STRENGTH.value;
+        float r = ((rgb >> 16) & 255) / 255f;
+        float g = ((rgb >> 8) & 255) / 255f;
+        float b = (rgb & 255) / 255f;
+        cir.setReturnValue(new Vector4f(
+                orig.x + (r - orig.x) * k,
+                orig.y + (g - orig.y) * k,
+                orig.z + (b - orig.z) * k,
+                orig.w));
+    }
+}
