@@ -1,0 +1,31 @@
+package dev.dobri.visual.mixin;
+
+import dev.dobri.visual.Freelook;
+import net.minecraft.client.render.Camera;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+
+/** Freelook: подменяем поворот камеры, пока зажата клавиша. */
+@Mixin(Camera.class)
+public class CameraMixin {
+    @ModifyArg(
+            method = "update",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V"),
+            index = 0,
+            require = 0
+    )
+    private float dobri$yaw(float yaw) {
+        return Freelook.active ? Freelook.yaw : yaw;
+    }
+
+    @ModifyArg(
+            method = "update",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V"),
+            index = 1,
+            require = 0
+    )
+    private float dobri$pitch(float pitch) {
+        return Freelook.active ? Freelook.pitch : pitch;
+    }
+}
