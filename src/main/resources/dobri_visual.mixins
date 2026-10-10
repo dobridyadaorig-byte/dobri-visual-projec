@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "package": "dev.dobri.visual.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "CameraMixin",
+    "EntityMixin",
+    "ClientWorldMixin",
+    "FogRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
