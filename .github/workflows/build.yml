@@ -20,15 +20,11 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
 
       - name: Build mod
-        run: |
-          if [ ! -f ./gradlew ]; then
-            echo "ERROR: Gradle Wrapper gradlew is missing."
-            exit 1
-          fi
-          chmod +x ./gradlew
-          ./gradlew clean build --no-daemon
+        run: gradle clean build --no-daemon
 
       - name: Verify mod JAR
         run: |
@@ -40,14 +36,8 @@ jobs:
           fi
           echo "Checking: $JAR"
           jar tf "$JAR" > jar-contents.txt
-          if ! grep -qx 'fabric.mod.json' jar-contents.txt; then
-            echo "ERROR: fabric.mod.json is missing."
-            exit 1
-          fi
-          if ! grep -q '\.class$' jar-contents.txt; then
-            echo "ERROR: No compiled Java classes found."
-            exit 1
-          fi
+          grep -qx 'fabric.mod.json' jar-contents.txt || { echo "ERROR: fabric.mod.json missing"; exit 1; }
+          grep -q '\.class$' jar-contents.txt || { echo "ERROR: No compiled classes"; exit 1; }
           ls -lh "$JAR"
           echo "JAR verification passed."
 
