@@ -17,7 +17,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: gradle
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -27,25 +26,24 @@ jobs:
       - name: Build mod
         run: gradle clean build --no-daemon --stacktrace
 
-      - name: Verify mod JAR
+      - name: Verify JAR
         shell: bash
         run: |
-          set -euo pipefail
-
-          mkdir -p verified-mod
-
-          JAR="$(find build/libs -maxdepth 1 -type f -name '*.jar' \
-            ! -name '*-sources.jar' \
-            ! -name '*-javadoc.jar' \
-            | head -n 1)"
-
+          set -eu
+          JAR=$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
           if [ -z "$JAR" ]; then
-            echo "ERROR: No mod JAR found in build/libs/"
+            echo "ERROR: JAR not found"
             exit 1
           fi
-
-          echo "Checking JAR: $JAR"
           jar tf "$JAR" > jar-contents.txt
+          grep -qx 'fabric.mod.json' jar-contents.txt || { echo "ERROR: fabric.mod.json missing"; exit 1; }
+          grep -q '\.class$' jar-contents.txt || { echo "ERROR: No compiled classes"; exit 1; }
+          echo "Verified JAR: $JAR"
+          ls -lh "$JAR"
 
-          if ! grep -qx 'fabric.mod.json' jar-contents.txt; then
-            echo "ERROR: fabric.mod.json
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dobri-Visual-jar
+          path: build/libs/*.jar
+          if-no-files-found: error
